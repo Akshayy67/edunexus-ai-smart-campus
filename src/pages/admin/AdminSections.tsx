@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Users, Trash2, Edit } from "lucide-react";
+import { Plus, Users, Trash2, UserPlus, X, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AdminSections() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isManageStudentsOpen, setIsManageStudentsOpen] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<any>(null);
+  const [studentSearch, setStudentSearch] = useState("");
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     batch_id: "",
     section_name: "A",
@@ -32,7 +38,7 @@ export default function AdminSections() {
         .from("sections")
         .select(`
           *,
-          batches:batch_id(name, program_id, programs:program_id(name, code))
+          batches:batch_id(name, program_id, current_semester, programs:program_id(name, code))
         `)
         .order("section_name");
       if (error) throw error;
@@ -62,12 +68,38 @@ export default function AdminSections() {
         .eq("status", "active");
       if (error) throw error;
       
-      // Count enrollments per section
       const counts: Record<string, number> = {};
       data?.forEach((e) => {
         counts[e.section_id] = (counts[e.section_id] || 0) + 1;
       });
       return counts;
+    },
+  });
+
+  const { data: allStudents } = useQuery({
+    queryKey: ["all-students"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, roll_number, email")
+        .eq("status", "active")
+        .order("roll_number");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: sectionEnrollments, refetch: refetchEnrollments } = useQuery({
+    queryKey: ["section-enrollments", selectedSection?.id],
+    enabled: !!selectedSection,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("student_enrollments")
+        .select("*, students:student_id(id, first_name, last_name, roll_number)")
+        .eq("section_id", selectedSection.id)
+        .eq("status", "active");
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -104,6 +136,80 @@ export default function AdminSections() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });
+
+  const enrollStudentsMutation = useMutation({
+    mutationFn: async ({ sectionId, studentIds }: { sectionId: string; studentIds: string[] }) => {
+      const currentYear = new Date().getFullYear();
+      const academicYear = `${currentYear}-${currentYear + 1}`;
+      const semester = selectedSection?.batches?.current_semester || 1;
+      
+      const enrollments = studentIds.map((studentId) => ({
+        student_id: studentId,
+        section_id: sectionId,
+        academic_year: academicYear,
+        semester: semester,
+        status: "active",
+      }));
+
+      const { error } = await supabase.from("student_enrollments").insert(enrollments);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["section-enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-counts"] });
+      toast({ title: "Success", description: "Students enrolled successfully" });
+      setSelectedStudents([]);
+      refetchEnrollments();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const removeEnrollmentMutation = useMutation({
+    mutationFn: async (enrollmentId: string) => {
+      const { error } = await supabase
+        .from("student_enrollments")
+        .update({ status: "inactive" })
+        .eq("id", enrollmentId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["section-enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-counts"] });
+      toast({ title: "Success", description: "Student removed from section" });
+      refetchEnrollments();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const openManageStudents = (section: any) => {
+    setSelectedSection(section);
+    setIsManageStudentsOpen(true);
+    setSelectedStudents([]);
+    setStudentSearch("");
+  };
+
+  const enrolledStudentIds = sectionEnrollments?.map((e: any) => e.student_id) || [];
+  
+  const filteredStudents = allStudents?.filter((student) => {
+    const matchesSearch = 
+      student.first_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      student.last_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      student.roll_number.toLowerCase().includes(studentSearch.toLowerCase());
+    const notEnrolled = !enrolledStudentIds.includes(student.id);
+    return matchesSearch && notEnrolled;
+  }) || [];
+
+  const toggleStudent = (studentId: string) => {
+    setSelectedStudents((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -222,13 +328,23 @@ export default function AdminSections() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => deleteMutation.mutate(section.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openManageStudents(section)}
+                        >
+                          <UserPlus className="h-4 w-4 mr-1" />
+                          Manage Students
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(section.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -244,6 +360,119 @@ export default function AdminSections() {
           </CardContent>
         </Card>
       )}
+
+      {/* Manage Students Dialog */}
+      <Dialog open={isManageStudentsOpen} onOpenChange={setIsManageStudentsOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Students - {selectedSection?.display_name || `Section ${selectedSection?.section_name}`}
+            </DialogTitle>
+            <DialogDescription>
+              Add or remove students from this section
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Currently Enrolled */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">Enrolled Students ({sectionEnrollments?.length || 0})</h4>
+              <ScrollArea className="h-[300px] border rounded-md p-2">
+                {sectionEnrollments?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No students enrolled</p>
+                ) : (
+                  <div className="space-y-2">
+                    {sectionEnrollments?.map((enrollment: any) => (
+                      <div 
+                        key={enrollment.id} 
+                        className="flex items-center justify-between p-2 rounded-md bg-muted/50"
+                      >
+                        <div>
+                          <div className="font-medium text-sm">
+                            {enrollment.students?.first_name} {enrollment.students?.last_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {enrollment.students?.roll_number}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeEnrollmentMutation.mutate(enrollment.id)}
+                        >
+                          <X className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            {/* Add Students */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">Add Students</h4>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or roll number..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <ScrollArea className="h-[250px] border rounded-md p-2">
+                {filteredStudents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {studentSearch ? "No matching students" : "All students enrolled"}
+                  </p>
+                ) : (
+                  <div className="space-y-1">
+                    {filteredStudents.map((student) => (
+                      <div 
+                        key={student.id}
+                        className="flex items-center gap-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+                        onClick={() => toggleStudent(student.id)}
+                      >
+                        <Checkbox 
+                          checked={selectedStudents.includes(student.id)}
+                          onCheckedChange={() => toggleStudent(student.id)}
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {student.first_name} {student.last_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {student.roll_number}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+              <Button
+                className="w-full"
+                disabled={selectedStudents.length === 0 || enrollStudentsMutation.isPending}
+                onClick={() => enrollStudentsMutation.mutate({
+                  sectionId: selectedSection.id,
+                  studentIds: selectedStudents,
+                })}
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add {selectedStudents.length} Student{selectedStudents.length !== 1 ? "s" : ""}
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsManageStudentsOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
