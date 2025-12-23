@@ -3,8 +3,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { AIInsightsPanel } from "@/components/ai/AIInsightsPanel";
+import { useAIInsights } from "@/hooks/useAIInsights";
 
 export default function FacultyDashboard() {
+  const { 
+    insights, 
+    alerts, 
+    loading, 
+    generateInsights, 
+    acknowledgeAlert, 
+    markInsightRead 
+  } = useAIInsights("faculty");
+
   // Mock data - will be replaced with real data
   const stats = {
     totalStudents: 156,
@@ -98,75 +109,92 @@ export default function FacultyDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Today's Classes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Today's Classes</CardTitle>
-            <CardDescription>Your teaching schedule for today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {todaysClasses.map((cls, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{cls.subject}</p>
-                      <Badge variant="outline">{cls.batch}</Badge>
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column: Classes & Assignments */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Today's Classes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Today's Classes</CardTitle>
+              <CardDescription>Your teaching schedule for today</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {todaysClasses.map((cls, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{cls.subject}</p>
+                        <Badge variant="outline">{cls.batch}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{cls.room}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{cls.room}</p>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{cls.time}</p>
+                      <Button size="sm" variant="ghost" className="mt-1" asChild>
+                        <Link to="/faculty/attendance">Take Attendance</Link>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{cls.time}</p>
-                    <Button size="sm" variant="ghost" className="mt-1" asChild>
-                      <Link to="/faculty/attendance">Take Attendance</Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" className="w-full mt-4" asChild>
-              <Link to="/faculty/timetable">View Full Schedule</Link>
-            </Button>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+              <Button variant="ghost" className="w-full mt-4" asChild>
+                <Link to="/faculty/timetable">View Full Schedule</Link>
+              </Button>
+            </CardContent>
+          </Card>
 
-        {/* Pending Submissions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Submissions</CardTitle>
-            <CardDescription>Assignments awaiting grading</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingSubmissions.map((assignment, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                >
-                  <div>
-                    <p className="font-medium">{assignment.title}</p>
-                    <p className="text-sm text-muted-foreground">{assignment.subject}</p>
+          {/* Pending Submissions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Submissions</CardTitle>
+              <CardDescription>Assignments awaiting grading</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pendingSubmissions.map((assignment, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                  >
+                    <div>
+                      <p className="font-medium">{assignment.title}</p>
+                      <p className="text-sm text-muted-foreground">{assignment.subject}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        {assignment.submissions}/{assignment.total} submitted
+                      </p>
+                      <Button size="sm" variant="ghost" className="mt-1" asChild>
+                        <Link to="/faculty/grading">Grade Now</Link>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {assignment.submissions}/{assignment.total} submitted
-                    </p>
-                    <Button size="sm" variant="ghost" className="mt-1" asChild>
-                      <Link to="/faculty/grading">Grade Now</Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" className="w-full mt-4" asChild>
-              <Link to="/faculty/assignments">View All Assignments</Link>
-            </Button>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+              <Button variant="ghost" className="w-full mt-4" asChild>
+                <Link to="/faculty/assignments">View All Assignments</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: AI Insights */}
+        <div>
+          <AIInsightsPanel
+            insights={insights}
+            alerts={alerts}
+            riskScore={null}
+            loading={loading}
+            onRefresh={generateInsights}
+            onAcknowledgeAlert={acknowledgeAlert}
+            onMarkRead={markInsightRead}
+            userType="faculty"
+          />
+        </div>
       </div>
     </div>
   );
