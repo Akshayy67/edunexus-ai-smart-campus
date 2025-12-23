@@ -1,1 +1,13 @@
 project_id = "gsvjqhmwqlpfflpppnpj"
+
+[functions.ai-feature-engineering]
+verify_jwt = false
+
+[functions.ai-risk-assessment]
+verify_jwt = false
+
+[functions.ai-insights-generator]
+verify_jwt = false
+
+[functions.ai-alerts-engine]
+verify_jwt = false
