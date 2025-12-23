@@ -200,13 +200,26 @@ export default function StudentMarkAttendance() {
         }
       }
 
+      // Set scanning to true first, then wait for the element to render
       setScanning(true);
 
-      // Initialize QR scanner
-      const scanner = new Html5Qrcode("qr-reader");
-      scannerRef.current = scanner;
+      // Wait for the QR reader element to be available
+      await new Promise<void>((resolve) => {
+        const checkElement = () => {
+          if (document.getElementById("qr-reader")) {
+            resolve();
+          } else {
+            requestAnimationFrame(checkElement);
+          }
+        };
+        checkElement();
+      });
 
+      // Initialize QR scanner
       try {
+        const scanner = new Html5Qrcode("qr-reader");
+        scannerRef.current = scanner;
+
         await scanner.start(
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 250 } },
