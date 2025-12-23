@@ -17,6 +17,7 @@ import {
   LogOut,
   X,
   DoorOpen,
+  Brain,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ const navItems = [
   { title: "Geo Zones", href: "/admin/geo-zones", icon: MapPin },
   { title: "Attendance Rules", href: "/admin/attendance-rules", icon: Settings2 },
   { title: "Analytics", href: "/admin/analytics", icon: TrendingUp },
+  { title: "AI Analytics", href: "/admin/ai-analytics", icon: Brain },
   { title: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
   { title: "Settings", href: "/admin/settings", icon: Settings },
 ];
