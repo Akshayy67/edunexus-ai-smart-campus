@@ -1,405 +1,448 @@
-# EduNexus AI - System Architecture Document
+# EduNexus AI - Role-Based System Architecture
 
-## 1. Product Vision & Problem Statement
+## 1. MANDATORY ROLE SEPARATION
 
-### Vision
-EduNexus AI transforms academic institutions with intelligent automation, real-time analytics, and AI-driven personalization to enhance educational outcomes for students, faculty, and administrators.
+EduNexus AI is a **STRICT ROLE-BASED ERP** with completely separate pages, flows, and permissions for each role.
 
-### Problem Statement
-Educational institutions face:
-- **Manual Attendance**: Time-consuming, error-prone roll calls that waste 10-15 min/class
-- **Fragmented Systems**: Siloed data across timetables, grades, and communications
-- **Delayed Insights**: Reactive rather than proactive academic intervention
-- **Administrative Overhead**: Repetitive tasks consuming faculty productivity
-- **One-Size-Fits-All Learning**: Lack of personalized student guidance
+### Core Roles
 
-### Solution
-An integrated AI-powered ERP that automates routine tasks, provides real-time visibility, and delivers personalized insights through intelligent data analysis.
+| Role | App Type | Access Level |
+|------|----------|--------------|
+| **Student** | Student Portal | Own data only |
+| **Faculty** | Faculty Portal | Assigned subjects only |
+| **Admin** | Admin Console | Institution-wide |
 
----
+### Security Principles
 
-## 2. Target Users
-
-### Student Portal
-- **Profile Management**: Personal info, academic records, documents
-- **Attendance Tracking**: View history, geo-fence check-in status
-- **Timetable Access**: Personal schedule with notifications
-- **Assignment Submission**: Upload, track deadlines, view feedback
-- **Performance Dashboard**: Grades, analytics, AI recommendations
-- **Notifications**: Push alerts for classes, deadlines, announcements
-
-### Faculty Portal
-- **Class Management**: Attendance, timetables, student lists
-- **Assessment Tools**: Create quizzes, assignments, grade submissions
-- **Performance Monitoring**: Class analytics, at-risk student alerts
-- **Communication**: Announcements, direct messaging
-- **Resource Sharing**: Upload materials, create content
-
-### Admin Portal
-- **Institution Management**: Departments, courses, academic calendar
-- **User Management**: Students, faculty, staff accounts
-- **Analytics Dashboard**: Institution-wide metrics, compliance reports
-- **System Configuration**: Geo-fence zones, notification rules, integrations
+1. **Zero Cross-Role Access**: No role can access another role's features
+2. **Backend Enforcement**: All permissions enforced via RLS policies
+3. **Separate Routes**: Each role has isolated route structure
+4. **API Protection**: Edge functions validate role before execution
 
 ---
 
-## 3. Full System Architecture
+## 2. PAGE STRUCTURE BY ROLE
+
+### Student Pages (`/student/*`)
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Dashboard | `/student` | Personal overview, quick stats |
+| Attendance | `/student/attendance` | View own attendance by subject |
+| Timetable | `/student/timetable` | Personal schedule (read-only) |
+| Mark Attendance | `/student/mark-attendance` | QR scan for attendance |
+| Assignments | `/student/assignments` | View and submit assignments |
+| Assignment Detail | `/student/assignments/:id` | Submit work, view feedback |
+| Marks | `/student/marks` | View grades and feedback |
+| Performance | `/student/performance` | Analytics and AI insights |
+| Notifications | `/student/notifications` | Alerts and announcements |
+| Profile | `/student/profile` | Personal info |
+
+### Faculty Pages (`/faculty/*`)
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Dashboard | `/faculty` | Teaching overview, quick actions |
+| My Subjects | `/faculty/subjects` | List of assigned subjects |
+| Subject Detail | `/faculty/subjects/:id` | Subject management hub |
+| Timetable | `/faculty/timetable` | Teaching schedule |
+| Attendance | `/faculty/attendance` | Open/manage attendance sessions |
+| Attendance Session | `/faculty/attendance/:sessionId` | QR generation, live tracking |
+| Assignments | `/faculty/assignments` | Create and manage assignments |
+| Assignment Detail | `/faculty/assignments/:id` | View submissions, grade |
+| Grading | `/faculty/grading` | Grade submissions |
+| Class Analytics | `/faculty/analytics` | Subject-wise performance |
+| Notifications | `/faculty/notifications` | Alerts |
+| Profile | `/faculty/profile` | Personal info |
+
+### Admin Pages (`/admin/*`)
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Dashboard | `/admin` | Institution overview |
+| Users | `/admin/users` | Manage students & faculty |
+| Students | `/admin/users/students` | Student management |
+| Faculty | `/admin/users/faculty` | Faculty management |
+| Departments | `/admin/departments` | Department CRUD |
+| Programs | `/admin/programs` | Program/course catalog |
+| Subjects | `/admin/subjects` | Subject management |
+| Timetables | `/admin/timetables` | Create timetables |
+| Faculty Assignment | `/admin/assign-faculty` | Assign faculty to subjects |
+| Geo Zones | `/admin/geo-zones` | Manage attendance zones |
+| Attendance Rules | `/admin/attendance-rules` | Configure thresholds |
+| Analytics | `/admin/analytics` | Institution-wide metrics |
+| Audit Logs | `/admin/audit-logs` | System activity logs |
+| Settings | `/admin/settings` | System configuration |
+
+---
+
+## 3. ACCESS CONTROL MATRIX
+
+### Student Permissions
+
+| Action | Allowed | Scope |
+|--------|---------|-------|
+| View own attendance | ✅ | Own records only |
+| View own timetable | ✅ | Enrolled subjects |
+| Scan QR for attendance | ✅ | Active sessions only |
+| Submit assignments | ✅ | Enrolled subjects |
+| View own marks | ✅ | Own grades only |
+| View own analytics | ✅ | Personal performance |
+| View other students | ❌ | - |
+| Generate QR codes | ❌ | - |
+| Edit attendance | ❌ | - |
+| Create assignments | ❌ | - |
+| See faculty analytics | ❌ | - |
+
+### Faculty Permissions
+
+| Action | Allowed | Scope |
+|--------|---------|-------|
+| View assigned subjects | ✅ | Assigned only |
+| Open attendance session | ✅ | Own subjects |
+| Generate QR code | ✅ | Active sessions |
+| Mark attendance manually | ✅ | Own subjects |
+| View subject attendance | ✅ | Own subjects only |
+| Create assignments | ✅ | Own subjects |
+| Grade submissions | ✅ | Own subjects |
+| View class analytics | ✅ | Own subjects |
+| See other faculty data | ❌ | - |
+| Institution analytics | ❌ | - |
+| Edit student profiles | ❌ | - |
+| Create subjects | ❌ | - |
+
+### Admin Permissions
+
+| Action | Allowed | Scope |
+|--------|---------|-------|
+| Manage all users | ✅ | Institution-wide |
+| Create subjects/courses | ✅ | All |
+| Assign faculty | ✅ | All |
+| Create timetables | ✅ | All |
+| Configure geo-zones | ✅ | All |
+| View all analytics | ✅ | Institution-wide |
+| View audit logs | ✅ | All |
+| Mark attendance | ❌ | - |
+| Submit assignments | ❌ | - |
+| Grade submissions | ❌ | - |
+
+---
+
+## 4. ATTENDANCE FLOW
+
+### Faculty Opens Attendance Session
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           CLIENT LAYER                                   │
-├────────────────────┬────────────────────┬───────────────────────────────┤
-│   Mobile App       │    Web Dashboard   │      Admin Console            │
-│   (React Native)   │    (React + Vite)  │      (React + Vite)           │
-│   iOS & Android    │    PWA Capable     │      Role-Based Access        │
-└────────┬───────────┴────────┬───────────┴───────────────┬───────────────┘
-         │                    │                           │
-         └────────────────────┼───────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          API GATEWAY                                     │
-│                    (Supabase Edge Functions)                            │
-│   • Rate Limiting  • Authentication  • Request Validation              │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        SERVICE LAYER                                     │
-├─────────────┬─────────────┬─────────────┬─────────────┬─────────────────┤
-│ Attendance  │  Timetable  │ Assessment  │  Analytics  │   AI Engine     │
-│  Service    │   Service   │   Service   │   Service   │   Service       │
-├─────────────┴─────────────┴─────────────┴─────────────┴─────────────────┤
-│                     Notification Service (Real-time)                     │
-│                     File Storage Service                                 │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         DATA LAYER                                       │
-├─────────────────────────────┬───────────────────────────────────────────┤
-│     PostgreSQL Database     │         File Storage                      │
-│     (Supabase)              │         (Supabase Storage)                │
-│   • Users & Profiles        │       • Assignment Submissions            │
-│   • Attendance Records      │       • Course Materials                  │
-│   • Timetables              │       • Profile Images                    │
-│   • Assessments             │       • Documents                         │
-│   • Performance Data        │                                           │
-└─────────────────────────────┴───────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      EXTERNAL INTEGRATIONS                               │
-│   • AI/ML APIs (OpenAI, Gemini)  • Push Notifications (FCM/APNs)        │
-│   • Email Service (Resend)       • Calendar Sync (Google/Outlook)       │
-│   • SMS Gateway                  • Payment Gateway (Fees)               │
-└─────────────────────────────────────────────────────────────────────────┘
+FACULTY FLOW:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 1. Faculty → My Subjects → Select Subject                          │
+│ 2. Faculty → Click "Open Attendance" for current period            │
+│ 3. System → Creates attendance_session record                      │
+│           → Status: 'active'                                        │
+│           → Generates time-bound QR code (expires in 30 sec)       │
+│           → Links to geo-fence zone                                 │
+│ 4. Faculty → Displays QR on screen                                  │
+│ 5. Faculty → Can refresh QR every 30 seconds                       │
+│ 6. Faculty → Views live attendance count                           │
+│ 7. Faculty → Can mark students manually if needed                  │
+│ 8. Faculty → Clicks "Close Session"                                │
+│ 9. System → Status: 'completed'                                     │
+│           → Lock all records (no more changes)                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Student Marks Attendance
+
+```
+STUDENT FLOW:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 1. Student → "Mark Attendance" page                                 │
+│ 2. Student → Scans QR code from faculty screen                     │
+│ 3. App → Captures:                                                  │
+│        → QR data (session_id, timestamp, hash)                     │
+│        → GPS coordinates                                            │
+│        → Device ID                                                   │
+│ 4. Backend → Validates:                                             │
+│           → QR not expired (< 30 seconds old)                       │
+│           → Student enrolled in subject                             │
+│           → GPS within geo-fence zone                               │
+│           → Session status = 'active'                               │
+│           → No duplicate attendance                                 │
+│ 5a. SUCCESS:                                                        │
+│    → Create attendance_record (status: 'present'/'late')           │
+│    → Show confirmation with checkmark                               │
+│ 5b. FAILURE:                                                        │
+│    → Show specific error message                                    │
+│    → Log attempt for audit                                          │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Failure Cases
+
+| Error | Cause | Message |
+|-------|-------|---------|
+| QR_EXPIRED | QR > 30 seconds old | "QR code expired. Ask faculty to refresh." |
+| NOT_ENROLLED | Student not in subject | "You are not enrolled in this subject." |
+| OUTSIDE_ZONE | GPS outside geo-fence | "You must be in the classroom to mark attendance." |
+| SESSION_CLOSED | Session not active | "Attendance session has ended." |
+| ALREADY_MARKED | Duplicate attempt | "Attendance already marked for this session." |
+| INVALID_QR | Tampered/fake QR | "Invalid QR code." |
+
+---
+
+## 5. ASSIGNMENT FLOW
+
+### Faculty Creates Assignment
+
+```
+FACULTY FLOW:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 1. Faculty → Assignments → Create New                               │
+│ 2. Faculty → Fills form:                                            │
+│           → Title, Description                                       │
+│           → Subject (from assigned list only)                       │
+│           → Due Date                                                 │
+│           → Total Marks                                              │
+│           → Late Submission Allowed (yes/no)                        │
+│ 3. System → Creates assessment record                               │
+│           → Status: 'draft'                                         │
+│ 4. Faculty → Reviews → Publishes                                    │
+│ 5. System → Status: 'published'                                     │
+│           → Notifies enrolled students                              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Student Submits Assignment
+
+```
+STUDENT FLOW:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 1. Student → Assignments → Views published assignments             │
+│ 2. Student → Opens assignment detail                               │
+│ 3. Student → Uploads file / enters text                            │
+│ 4. System → Validates:                                              │
+│           → Student enrolled in subject                             │
+│           → Before due date (or late allowed)                       │
+│           → File size/type valid                                    │
+│ 5. System → Creates submission record                               │
+│           → is_late: true/false                                     │
+│           → Status: 'submitted'                                     │
+│ 6. System → Notifies faculty                                        │
+│ 7. Student → Can resubmit until due date                           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Faculty Grades Assignment
+
+```
+GRADING FLOW:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 1. Faculty → Assignment → View Submissions                          │
+│ 2. Faculty → Opens submission                                       │
+│ 3. Faculty → Downloads/views file                                  │
+│ 4. Faculty → Enters marks and feedback                             │
+│ 5. System → Updates submission:                                     │
+│           → marks_obtained                                          │
+│           → feedback                                                 │
+│           → graded_by                                               │
+│           → graded_at                                               │
+│           → Status: 'graded'                                        │
+│ 6. System → Notifies student                                        │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Technology Stack
+## 6. DATA VISIBILITY RULES
+
+### Attendance Data
+
+| Role | Can See |
+|------|---------|
+| Student | Own attendance: all subjects, all dates |
+| Faculty | Attendance for subjects they teach only |
+| Admin | All attendance, institution-wide |
+
+### Assignment Data
+
+| Role | Can See |
+|------|---------|
+| Student | Assignments for enrolled subjects + own submissions |
+| Faculty | Assignments they created + all submissions for those |
+| Admin | All assignments (read-only, no grading) |
+
+### Marks Data
+
+| Role | Can See |
+|------|---------|
+| Student | Own marks only |
+| Faculty | Marks for subjects they teach |
+| Admin | Aggregated analytics (not individual marks) |
+
+### Analytics Data
+
+| Role | Can See |
+|------|---------|
+| Student | Personal performance, subject-wise breakdown |
+| Faculty | Class performance for taught subjects |
+| Admin | Institution-wide metrics, department comparisons |
+
+---
+
+## 7. DATABASE SECURITY (RLS POLICIES)
+
+### Existing Policies Summary
+
+```sql
+-- Students: Own data only
+"Students view own attendance" → student_id matches user's student record
+"Students view own submissions" → student_id matches user's student record
+
+-- Faculty: Assigned subjects only
+"Faculty view all attendance" → has_role('faculty')
+"Faculty can manage attendance" → has_role('faculty')
+"Faculty view all submissions" → has_role('faculty')
+"Faculty can grade" → has_role('faculty')
+
+-- Admin: Full access
+"Admins can manage students" → has_role('admin')
+"Admins can manage faculty" → has_role('admin')
+```
+
+### Additional Required Policies
+
+```sql
+-- Faculty should only see their assigned subjects
+-- This requires filtering in application logic using course_assignments table
+
+-- Example query for faculty attendance:
+SELECT ar.* FROM attendance_records ar
+JOIN attendance_sessions as ON ar.session_id = as.id
+JOIN course_assignments ca ON as.course_id = ca.course_id
+WHERE ca.faculty_id = (SELECT id FROM faculty WHERE user_id = auth.uid())
+```
+
+---
+
+## 8. ROUTING STRUCTURE
+
+### App.tsx Routes
+
+```typescript
+// Public Routes
+/auth/login          → Login page (role selection)
+/auth/student        → Student login
+/auth/faculty        → Faculty login  
+/auth/admin          → Admin login
+
+// Protected: Student Routes
+/student/*           → StudentLayout wrapper
+  /student           → StudentDashboard
+  /student/attendance → StudentAttendance
+  /student/timetable → StudentTimetable
+  /student/mark-attendance → MarkAttendance (QR scan)
+  /student/assignments → StudentAssignments
+  /student/assignments/:id → AssignmentDetail
+  /student/marks     → StudentMarks
+  /student/performance → StudentPerformance
+  /student/profile   → StudentProfile
+
+// Protected: Faculty Routes
+/faculty/*           → FacultyLayout wrapper
+  /faculty           → FacultyDashboard
+  /faculty/subjects  → FacultySubjects
+  /faculty/subjects/:id → SubjectDetail
+  /faculty/timetable → FacultyTimetable
+  /faculty/attendance → FacultyAttendance
+  /faculty/attendance/:sessionId → AttendanceSession
+  /faculty/assignments → FacultyAssignments
+  /faculty/assignments/:id → AssignmentManagement
+  /faculty/grading   → Grading
+  /faculty/analytics → FacultyAnalytics
+  /faculty/profile   → FacultyProfile
+
+// Protected: Admin Routes
+/admin/*             → AdminLayout wrapper
+  /admin             → AdminDashboard
+  /admin/users/students → StudentManagement
+  /admin/users/faculty → FacultyManagement
+  /admin/departments → DepartmentManagement
+  /admin/programs    → ProgramManagement
+  /admin/subjects    → SubjectManagement
+  /admin/timetables  → TimetableManagement
+  /admin/assign-faculty → FacultyAssignment
+  /admin/geo-zones   → GeoZoneManagement
+  /admin/attendance-rules → AttendanceRules
+  /admin/analytics   → AdminAnalytics
+  /admin/audit-logs  → AuditLogs
+  /admin/settings    → SystemSettings
+```
+
+---
+
+## 9. TECHNOLOGY STACK
 
 ### Frontend
-| Component | Technology | Justification |
-|-----------|------------|---------------|
-| Web App | React 18 + TypeScript + Vite | Fast builds, type safety, modern DX |
-| Mobile App | React Native / Capacitor | Code sharing with web, native performance |
-| UI Library | shadcn/ui + Tailwind CSS | Accessible, customizable, consistent |
-| State | TanStack Query + Zustand | Server state caching, minimal boilerplate |
-| Charts | Recharts | React-native, responsive visualizations |
-| Forms | React Hook Form + Zod | Validation, performance, type inference |
+| Component | Technology |
+|-----------|------------|
+| Web App | React 18 + TypeScript + Vite |
+| UI Library | shadcn/ui + Tailwind CSS |
+| State | TanStack Query |
+| Routing | React Router v6 |
+| Forms | React Hook Form + Zod |
+| Charts | Recharts |
 
-### Backend
-| Component | Technology | Justification |
-|-----------|------------|---------------|
-| API Layer | Supabase Edge Functions | Serverless, auto-scaling, low latency |
-| Auth | Supabase Auth | JWT, OAuth, MFA support, RLS integration |
-| Real-time | Supabase Realtime | WebSocket subscriptions, presence |
-| Database | PostgreSQL (Supabase) | ACID compliance, RLS, full-text search |
-| File Storage | Supabase Storage | CDN, transformations, access policies |
+### Backend (Lovable Cloud)
+| Component | Technology |
+|-----------|------------|
+| Database | PostgreSQL |
+| Auth | Supabase Auth |
+| API | Edge Functions |
+| Real-time | Supabase Realtime |
+| Storage | Supabase Storage |
 
-### AI/ML Layer
-| Component | Technology | Justification |
-|-----------|------------|---------------|
-| LLM | OpenAI GPT-4 / Gemini | Personalized insights, natural language |
-| Analytics | Custom algorithms | Performance normalization, predictions |
-| Recommendations | Collaborative filtering | Study suggestions, resource matching |
-
-### DevOps & Monitoring
-| Component | Technology | Justification |
-|-----------|------------|---------------|
-| Hosting | Lovable Cloud | Zero-config deployment, auto-scaling |
-| Monitoring | Supabase Dashboard | Built-in analytics, query performance |
-| Error Tracking | Sentry (optional) | Real-time error reporting |
+### Security
+| Layer | Implementation |
+|-------|----------------|
+| Authentication | JWT + Session management |
+| Authorization | RLS policies + has_role() function |
+| Route Guards | React Router protected routes |
+| API Protection | Edge function role validation |
 
 ---
 
-## 5. Core Modules & Interactions
+## 10. RELIABILITY & CONSISTENCY RULES
 
-### Module Dependency Map
+### Attendance Reliability
 
-```
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│   AUTH MODULE    │◄────►│   USER MODULE    │◄────►│  PROFILE MODULE  │
-└────────┬─────────┘      └────────┬─────────┘      └──────────────────┘
-         │                         │
-         ▼                         ▼
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│ ATTENDANCE MODULE│◄────►│ TIMETABLE MODULE │◄────►│ COURSE MODULE    │
-│  • Geo-fencing   │      │  • Scheduling    │      │  • Curriculum    │
-│  • Auto check-in │      │  • Conflicts     │      │  • Resources     │
-│  • Reports       │      │  • Notifications │      │  • Enrollment    │
-└────────┬─────────┘      └────────┬─────────┘      └────────┬─────────┘
-         │                         │                         │
-         └─────────────────────────┼─────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│ASSESSMENT MODULE │◄────►│ GRADING MODULE   │◄────►│ ANALYTICS MODULE │
-│  • Assignments   │      │  • Auto-grading  │      │  • Performance   │
-│  • Quizzes       │      │  • Rubrics       │      │  • Normalization │
-│  • Exams         │      │  • Feedback      │      │  • Predictions   │
-└────────┬─────────┘      └────────┬─────────┘      └────────┬─────────┘
-         │                         │                         │
-         └─────────────────────────┼─────────────────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────┐
-                    │      AI ENGINE MODULE    │
-                    │  • Personalized insights │
-                    │  • Study recommendations │
-                    │  • At-risk predictions   │
-                    │  • Content summarization │
-                    └──────────────────────────┘
-```
+1. **Atomic Operations**: Each attendance mark is a single transaction
+2. **Idempotency**: Duplicate scans are rejected gracefully
+3. **Audit Trail**: All attempts logged (success and failure)
+4. **Session Locking**: Closed sessions cannot be modified
+5. **Time Validation**: Server time used, not client time
 
-### Module Descriptions
+### Assignment Reliability
 
-1. **Attendance Module**
-   - Geo-fence configuration per classroom/campus zone
-   - Automatic check-in when student enters geo-fence during class time
-   - Manual override capability for faculty
-   - Attendance reports and trend analysis
+1. **File Storage**: Files stored with versioning
+2. **Submission Tracking**: Every submission creates new record
+3. **Deadline Enforcement**: Server-side deadline check
+4. **Grade Integrity**: Only assigned faculty can grade
 
-2. **Timetable Module**
-   - Dynamic schedule management
-   - Conflict detection and resolution
-   - Push notifications for upcoming classes
-   - Integration with personal calendars
+### Data Consistency
 
-3. **Assessment Module**
-   - Multiple assessment types (quiz, assignment, project, exam)
-   - File submission with plagiarism detection hooks
-   - Deadline management with reminders
-   - Rubric-based grading templates
-
-4. **Analytics Module**
-   - Performance normalization across courses
-   - Trend analysis and forecasting
-   - Comparative analytics (class, department, batch)
-   - Export capabilities for reporting
-
-5. **AI Engine Module**
-   - Natural language insights generation
-   - Personalized study recommendations
-   - Early warning system for at-risk students
-   - Content summarization for study materials
+1. **Referential Integrity**: Foreign keys enforced
+2. **Cascade Rules**: Proper ON DELETE behavior
+3. **Validation Triggers**: Data validated before insert
+4. **Updated Timestamps**: auto-updated on changes
 
 ---
 
-## 6. Data Flow Diagram
+## 11. SYSTEM CONSTRAINTS
 
-### Attendance Flow
-```
-Student Device                  Backend                     Database
-     │                            │                            │
-     │  [GPS + Class Time]        │                            │
-     ├───────────────────────────►│                            │
-     │                            │ Validate Geo-fence         │
-     │                            │ Check Active Class         │
-     │                            ├───────────────────────────►│
-     │                            │                            │ Store Record
-     │                            │◄───────────────────────────┤
-     │  [Confirmation]            │                            │
-     │◄───────────────────────────┤                            │
-     │                            │  [Real-time Update]        │
-     │                            ├───────────────────────────►│
-     │                            │                     Faculty Dashboard
-```
-
-### Assessment Submission Flow
-```
-Student                    API Gateway              Services                  Database
-   │                           │                       │                         │
-   │ Upload Assignment         │                       │                         │
-   ├──────────────────────────►│                       │                         │
-   │                           │ Validate & Store File │                         │
-   │                           ├──────────────────────►│                         │
-   │                           │                       │ Store in Supabase       │
-   │                           │                       ├────────────────────────►│
-   │                           │                       │                         │
-   │                           │                       │ Update Submission Record│
-   │                           │                       ├────────────────────────►│
-   │                           │                       │                         │
-   │                           │ Notify Faculty        │                         │
-   │                           ├──────────────────────►│                         │
-   │ Confirmation              │                       │                         │
-   │◄──────────────────────────┤                       │                         │
-```
-
-### AI Insights Flow
-```
-Scheduled Job              Analytics Service          AI Engine              Student
-      │                           │                       │                     │
-      │ Trigger Analysis          │                       │                     │
-      ├──────────────────────────►│                       │                     │
-      │                           │ Aggregate Student Data│                     │
-      │                           ├──────────────────────►│                     │
-      │                           │                       │ Generate Insights   │
-      │                           │                       │ (LLM Processing)    │
-      │                           │◄──────────────────────┤                     │
-      │                           │ Store Insights        │                     │
-      │                           │                       │                     │
-      │                           │                       │ Push Notification   │
-      │                           │                       ├────────────────────►│
-```
-
----
-
-## 7. Security, Privacy & Scalability Strategy
-
-### Security Measures
-
-#### Authentication & Authorization
-- **Multi-factor Authentication (MFA)**: Optional for students, mandatory for admins
-- **Role-Based Access Control (RBAC)**: Granular permissions per module
-- **Row-Level Security (RLS)**: Database-level access restrictions
-- **JWT Tokens**: Short-lived access tokens with refresh rotation
-- **Session Management**: Concurrent session limits, device tracking
-
-#### Data Protection
-- **Encryption at Rest**: AES-256 for stored data (Supabase default)
-- **Encryption in Transit**: TLS 1.3 for all communications
-- **PII Handling**: Minimal data collection, purpose limitation
-- **Data Retention**: Configurable retention policies per data type
-- **Audit Logging**: All sensitive operations logged with timestamps
-
-#### Application Security
-- **Input Validation**: Server-side validation for all inputs
-- **SQL Injection Prevention**: Parameterized queries via Supabase client
-- **XSS Prevention**: Content Security Policy headers
-- **CORS Configuration**: Whitelist-based origin restrictions
-- **Rate Limiting**: Per-user and per-IP throttling
-
-### Privacy Compliance
-
-#### GDPR / Data Protection
-- **Consent Management**: Explicit consent for data processing
-- **Right to Access**: User data export functionality
-- **Right to Erasure**: Account deletion with data purge
-- **Data Portability**: Standard format exports (JSON/CSV)
-- **Privacy by Design**: Minimal data collection principles
-
-#### Student Data Protection
-- **FERPA Compliance** (US): Educational records access controls
-- **Parent/Guardian Access**: Configurable for minor students
-- **Third-Party Restrictions**: No data sharing without consent
-
-### Scalability Strategy
-
-#### Horizontal Scaling
-```
-                    ┌─────────────────┐
-                    │   Load Balancer │
-                    └────────┬────────┘
-                             │
-        ┌────────────────────┼────────────────────┐
-        ▼                    ▼                    ▼
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│  Edge Function│   │  Edge Function│   │  Edge Function│
-│   Instance 1  │   │   Instance 2  │   │   Instance N  │
-└───────────────┘   └───────────────┘   └───────────────┘
-        │                    │                    │
-        └────────────────────┼────────────────────┘
-                             ▼
-              ┌──────────────────────────┐
-              │   PostgreSQL (Pooled)    │
-              │   Connection Pooling     │
-              │   Read Replicas          │
-              └──────────────────────────┘
-```
-
-#### Performance Optimizations
-- **Database Indexing**: Strategic indexes on frequently queried columns
-- **Query Optimization**: Materialized views for analytics
-- **Caching Strategy**: 
-  - Response caching for static data
-  - Session caching for user preferences
-  - Query result caching for reports
-- **CDN Integration**: Static assets and file storage
-- **Lazy Loading**: Progressive data loading on dashboards
-
-#### Capacity Planning
-| Scale | Students | Faculty | Concurrent Users | Database Size |
-|-------|----------|---------|------------------|---------------|
-| Small | 500 | 50 | 100 | 5 GB |
-| Medium | 5,000 | 200 | 1,000 | 50 GB |
-| Large | 50,000 | 1,000 | 10,000 | 500 GB |
-| Enterprise | 200,000+ | 5,000+ | 50,000+ | 2 TB+ |
-
-#### Disaster Recovery
-- **Backup Strategy**: Daily automated backups, 30-day retention
-- **Point-in-Time Recovery**: Up to 7 days granularity
-- **Multi-Region**: Optional geo-redundancy for enterprise
-- **Failover**: Automatic failover for database connections
-
----
-
-## 8. Implementation Roadmap
-
-### Phase 1: Foundation (Weeks 1-4)
-- [ ] User authentication & authorization
-- [ ] Basic user management (CRUD)
-- [ ] Core database schema
-- [ ] UI component library setup
-
-### Phase 2: Core Modules (Weeks 5-10)
-- [ ] Attendance with geo-fencing
-- [ ] Timetable management
-- [ ] Basic assessments & submissions
-- [ ] Real-time notifications
-
-### Phase 3: Analytics & AI (Weeks 11-14)
-- [ ] Performance dashboards
-- [ ] Grade normalization
-- [ ] AI insights engine
-- [ ] Predictive analytics
-
-### Phase 4: Polish & Scale (Weeks 15-18)
-- [ ] Mobile app optimization
-- [ ] Performance tuning
-- [ ] Security audit
-- [ ] Documentation & training
-
----
-
-## 9. API Endpoints Summary
-
-| Module | Endpoint | Method | Description |
-|--------|----------|--------|-------------|
-| Auth | `/auth/login` | POST | User login |
-| Auth | `/auth/logout` | POST | User logout |
-| Users | `/users` | GET/POST | List/Create users |
-| Attendance | `/attendance/check-in` | POST | Geo-fence check-in |
-| Attendance | `/attendance/history` | GET | Attendance records |
-| Timetable | `/timetable` | GET | User schedule |
-| Assessments | `/assessments` | GET/POST | List/Create assessments |
-| Submissions | `/submissions` | POST | Submit assignment |
-| Analytics | `/analytics/performance` | GET | Performance metrics |
-| AI | `/ai/insights` | GET | Personalized insights |
-
----
-
-*Document Version: 1.0*
-*Last Updated: December 2024*
+1. **No Mixed-Role Pages**: Each page serves exactly one role
+2. **API Role Enforcement**: Every endpoint checks user role
+3. **Subject-Specific Attendance**: Always linked to subject + period
+4. **Faculty-Controlled Sessions**: Only faculty can open/close
+5. **Complete Student View**: Students see ALL their attendance
+6. **Scoped Faculty View**: Faculty see ONLY their subjects
+7. **No Admin Data Entry**: Admins configure, don't operate
