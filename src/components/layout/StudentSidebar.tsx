@@ -8,7 +8,7 @@ import {
   Award,
   TrendingUp,
   Bell,
-  User,
+  Clock,
   LogOut,
   X,
 } from "lucide-react";
@@ -23,6 +23,7 @@ interface StudentSidebarProps {
 
 const navItems = [
   { title: "Dashboard", href: "/student", icon: LayoutDashboard },
+  { title: "Today's Classes", href: "/student/today", icon: Clock },
   { title: "Attendance", href: "/student/attendance", icon: CalendarCheck },
   { title: "Timetable", href: "/student/timetable", icon: Calendar },
   { title: "Mark Attendance", href: "/student/mark-attendance", icon: QrCode },
@@ -30,7 +31,6 @@ const navItems = [
   { title: "Marks", href: "/student/marks", icon: Award },
   { title: "Performance", href: "/student/performance", icon: TrendingUp },
   { title: "Notifications", href: "/student/notifications", icon: Bell },
-  { title: "Profile", href: "/student/profile", icon: User },
 ];
 
 export function StudentSidebar({ isOpen, onClose }: StudentSidebarProps) {
