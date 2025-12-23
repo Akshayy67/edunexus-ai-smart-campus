@@ -14,6 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_submissions: {
+        Row: {
+          assessment_id: string | null
+          created_at: string | null
+          feedback: string | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          is_late: boolean | null
+          marks_obtained: number | null
+          status: string | null
+          student_id: string | null
+          submission_content: string | null
+          submitted_at: string | null
+          submitted_files: Json | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_late?: boolean | null
+          marks_obtained?: number | null
+          status?: string | null
+          student_id?: string | null
+          submission_content?: string | null
+          submitted_at?: string | null
+          submitted_files?: Json | null
+        }
+        Update: {
+          assessment_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_late?: boolean | null
+          marks_obtained?: number | null
+          status?: string | null
+          student_id?: string | null
+          submission_content?: string | null
+          submitted_at?: string | null
+          submitted_files?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_submissions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_submissions_graded_by_fkey"
+            columns: ["graded_by"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessments: {
+        Row: {
+          assessment_type: string
+          available_from: string | null
+          batch_id: string | null
+          course_id: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          faculty_id: string | null
+          id: string
+          late_submission_allowed: boolean | null
+          status: string | null
+          title: string
+          total_marks: number
+          updated_at: string | null
+          weightage_percentage: number | null
+        }
+        Insert: {
+          assessment_type: string
+          available_from?: string | null
+          batch_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          faculty_id?: string | null
+          id?: string
+          late_submission_allowed?: boolean | null
+          status?: string | null
+          title: string
+          total_marks: number
+          updated_at?: string | null
+          weightage_percentage?: number | null
+        }
+        Update: {
+          assessment_type?: string
+          available_from?: string | null
+          batch_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          faculty_id?: string | null
+          id?: string
+          late_submission_allowed?: boolean | null
+          status?: string | null
+          title?: string
+          total_marks?: number
+          updated_at?: string | null
+          weightage_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_records: {
+        Row: {
+          check_in_latitude: number | null
+          check_in_longitude: number | null
+          check_in_method: string | null
+          check_in_time: string | null
+          created_at: string | null
+          device_id: string | null
+          id: string
+          marked_by: string | null
+          remarks: string | null
+          session_id: string | null
+          status: string
+          student_id: string | null
+        }
+        Insert: {
+          check_in_latitude?: number | null
+          check_in_longitude?: number | null
+          check_in_method?: string | null
+          check_in_time?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          marked_by?: string | null
+          remarks?: string | null
+          session_id?: string | null
+          status: string
+          student_id?: string | null
+        }
+        Update: {
+          check_in_latitude?: number | null
+          check_in_longitude?: number | null
+          check_in_method?: string | null
+          check_in_time?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          marked_by?: string | null
+          remarks?: string | null
+          session_id?: string | null
+          status?: string
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_sessions: {
+        Row: {
+          auto_attendance_enabled: boolean | null
+          course_id: string | null
+          created_at: string | null
+          end_time: string
+          faculty_id: string | null
+          id: string
+          late_threshold_minutes: number | null
+          session_date: string
+          start_time: string
+          status: string | null
+          timetable_slot_id: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          auto_attendance_enabled?: boolean | null
+          course_id?: string | null
+          created_at?: string | null
+          end_time: string
+          faculty_id?: string | null
+          id?: string
+          late_threshold_minutes?: number | null
+          session_date: string
+          start_time: string
+          status?: string | null
+          timetable_slot_id?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          auto_attendance_enabled?: boolean | null
+          course_id?: string | null
+          created_at?: string | null
+          end_time?: string
+          faculty_id?: string | null
+          id?: string
+          late_threshold_minutes?: number | null
+          session_date?: string
+          start_time?: string
+          status?: string | null
+          timetable_slot_id?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_timetable_slot_id_fkey"
+            columns: ["timetable_slot_id"]
+            isOneToOne: false
+            referencedRelation: "timetable_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "geo_fence_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       batches: {
         Row: {
           created_at: string | null
@@ -51,6 +338,61 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_assignments: {
+        Row: {
+          academic_year: string
+          batch_id: string | null
+          course_id: string | null
+          created_at: string | null
+          faculty_id: string | null
+          id: string
+          role: string | null
+          semester: number
+        }
+        Insert: {
+          academic_year: string
+          batch_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          faculty_id?: string | null
+          id?: string
+          role?: string | null
+          semester: number
+        }
+        Update: {
+          academic_year?: string
+          batch_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          faculty_id?: string | null
+          id?: string
+          role?: string | null
+          semester?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_assignments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_assignments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_assignments_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
             referencedColumns: ["id"]
           },
         ]
@@ -176,6 +518,90 @@ export type Database = {
           },
         ]
       }
+      geo_fence_zones: {
+        Row: {
+          building: string | null
+          capacity: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters: number
+          room_number: string | null
+          zone_type: string
+        }
+        Insert: {
+          building?: string | null
+          capacity?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters?: number
+          room_number?: string | null
+          zone_type: string
+        }
+        Update: {
+          building?: string | null
+          capacity?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          radius_meters?: number
+          room_number?: string | null
+          zone_type?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          priority: string | null
+          read_at: string | null
+          recipient_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          priority?: string | null
+          read_at?: string | null
+          recipient_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          priority?: string | null
+          read_at?: string | null
+          recipient_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           code: string
@@ -267,6 +693,63 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      timetable_slots: {
+        Row: {
+          course_assignment_id: string | null
+          created_at: string | null
+          day_of_week: number
+          effective_from: string
+          effective_until: string | null
+          end_time: string
+          id: string
+          is_recurring: boolean | null
+          slot_type: string | null
+          start_time: string
+          zone_id: string | null
+        }
+        Insert: {
+          course_assignment_id?: string | null
+          created_at?: string | null
+          day_of_week: number
+          effective_from: string
+          effective_until?: string | null
+          end_time: string
+          id?: string
+          is_recurring?: boolean | null
+          slot_type?: string | null
+          start_time: string
+          zone_id?: string | null
+        }
+        Update: {
+          course_assignment_id?: string | null
+          created_at?: string | null
+          day_of_week?: number
+          effective_from?: string
+          effective_until?: string | null
+          end_time?: string
+          id?: string
+          is_recurring?: boolean | null
+          slot_type?: string | null
+          start_time?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_slots_course_assignment_id_fkey"
+            columns: ["course_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "course_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "geo_fence_zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
