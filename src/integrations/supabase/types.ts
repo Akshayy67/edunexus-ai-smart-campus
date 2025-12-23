@@ -14,6 +14,433 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          action_taken: string | null
+          alert_type: string
+          created_at: string | null
+          data: Json | null
+          id: string
+          is_acknowledged: boolean | null
+          message: string
+          recipient_id: string
+          recipient_type: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          requires_action: boolean | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          action_taken?: string | null
+          alert_type: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_acknowledged?: boolean | null
+          message: string
+          recipient_id: string
+          recipient_type: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          requires_action?: boolean | null
+          severity: string
+          title: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          action_taken?: string | null
+          alert_type?: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_acknowledged?: boolean | null
+          message?: string
+          recipient_id?: string
+          recipient_type?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          requires_action?: boolean | null
+          severity?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      ai_audit_log: {
+        Row: {
+          action_type: string
+          confidence: number | null
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          explanation: string | null
+          factors_used: Json | null
+          id: string
+          input_data: Json | null
+          model_version: string | null
+          output_data: Json | null
+          override_reason: string | null
+          processing_time_ms: number | null
+          user_id: string | null
+          was_overridden: boolean | null
+        }
+        Insert: {
+          action_type: string
+          confidence?: number | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          explanation?: string | null
+          factors_used?: Json | null
+          id?: string
+          input_data?: Json | null
+          model_version?: string | null
+          output_data?: Json | null
+          override_reason?: string | null
+          processing_time_ms?: number | null
+          user_id?: string | null
+          was_overridden?: boolean | null
+        }
+        Update: {
+          action_type?: string
+          confidence?: number | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          explanation?: string | null
+          factors_used?: Json | null
+          id?: string
+          input_data?: Json | null
+          model_version?: string | null
+          output_data?: Json | null
+          override_reason?: string | null
+          processing_time_ms?: number | null
+          user_id?: string | null
+          was_overridden?: boolean | null
+        }
+        Relationships: []
+      }
+      ai_faculty_grading_profile: {
+        Row: {
+          academic_year: string | null
+          avg_marks_given: number | null
+          calculated_at: string | null
+          course_id: string | null
+          deviation_from_dept_avg: number | null
+          faculty_id: string
+          grading_consistency: number | null
+          grading_std_deviation: number | null
+          id: string
+          median_marks_given: number | null
+          sample_size: number | null
+          strictness_index: number | null
+        }
+        Insert: {
+          academic_year?: string | null
+          avg_marks_given?: number | null
+          calculated_at?: string | null
+          course_id?: string | null
+          deviation_from_dept_avg?: number | null
+          faculty_id: string
+          grading_consistency?: number | null
+          grading_std_deviation?: number | null
+          id?: string
+          median_marks_given?: number | null
+          sample_size?: number | null
+          strictness_index?: number | null
+        }
+        Update: {
+          academic_year?: string | null
+          avg_marks_given?: number | null
+          calculated_at?: string | null
+          course_id?: string | null
+          deviation_from_dept_avg?: number | null
+          faculty_id?: string
+          grading_consistency?: number | null
+          grading_std_deviation?: number | null
+          id?: string
+          median_marks_given?: number | null
+          sample_size?: number | null
+          strictness_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_faculty_grading_profile_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_faculty_grading_profile_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_feature_cache: {
+        Row: {
+          calculated_at: string | null
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          feature_set: string
+          features: Json
+          id: string
+          is_stale: boolean | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          entity_id: string
+          entity_type: string
+          expires_at?: string | null
+          feature_set: string
+          features: Json
+          id?: string
+          is_stale?: boolean | null
+        }
+        Update: {
+          calculated_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          feature_set?: string
+          features?: Json
+          id?: string
+          is_stale?: boolean | null
+        }
+        Relationships: []
+      }
+      ai_insights: {
+        Row: {
+          action_url: string | null
+          category: string | null
+          confidence: number | null
+          created_at: string | null
+          data: Json | null
+          expires_at: string | null
+          id: string
+          insight_type: string
+          is_actionable: boolean | null
+          is_read: boolean | null
+          message: string
+          priority: string | null
+          title: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          action_url?: string | null
+          category?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          insight_type: string
+          is_actionable?: boolean | null
+          is_read?: boolean | null
+          message: string
+          priority?: string | null
+          title: string
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          action_url?: string | null
+          category?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          insight_type?: string
+          is_actionable?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          priority?: string | null
+          title?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
+      ai_recommendations: {
+        Row: {
+          action_items: Json | null
+          completed_at: string | null
+          confidence: number | null
+          content: string
+          created_at: string | null
+          estimated_impact: string | null
+          expires_at: string | null
+          id: string
+          is_completed: boolean | null
+          priority: number | null
+          recommendation_type: string
+          student_id: string
+          title: string
+        }
+        Insert: {
+          action_items?: Json | null
+          completed_at?: string | null
+          confidence?: number | null
+          content: string
+          created_at?: string | null
+          estimated_impact?: string | null
+          expires_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          priority?: number | null
+          recommendation_type: string
+          student_id: string
+          title: string
+        }
+        Update: {
+          action_items?: Json | null
+          completed_at?: string | null
+          confidence?: number | null
+          content?: string
+          created_at?: string | null
+          estimated_impact?: string | null
+          expires_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          priority?: number | null
+          recommendation_type?: string
+          student_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_recommendations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_risk_scores: {
+        Row: {
+          academic_factor: number | null
+          attendance_factor: number | null
+          calculated_at: string | null
+          confidence: number | null
+          contributing_factors: Json | null
+          engagement_factor: number | null
+          explanation: string | null
+          id: string
+          model_version: string | null
+          risk_category: string
+          risk_score: number
+          student_id: string
+        }
+        Insert: {
+          academic_factor?: number | null
+          attendance_factor?: number | null
+          calculated_at?: string | null
+          confidence?: number | null
+          contributing_factors?: Json | null
+          engagement_factor?: number | null
+          explanation?: string | null
+          id?: string
+          model_version?: string | null
+          risk_category: string
+          risk_score: number
+          student_id: string
+        }
+        Update: {
+          academic_factor?: number | null
+          attendance_factor?: number | null
+          calculated_at?: string | null
+          confidence?: number | null
+          contributing_factors?: Json | null
+          engagement_factor?: number | null
+          explanation?: string | null
+          id?: string
+          model_version?: string | null
+          risk_category?: string
+          risk_score?: number
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_risk_scores_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_subject_difficulty: {
+        Row: {
+          academic_year: string | null
+          batch_id: string | null
+          calculated_at: string | null
+          class_average: number | null
+          class_std_deviation: number | null
+          course_id: string
+          difficulty_score: number | null
+          failure_rate: number | null
+          id: string
+          sample_size: number | null
+          semester: number | null
+          top_performer_ceiling: number | null
+        }
+        Insert: {
+          academic_year?: string | null
+          batch_id?: string | null
+          calculated_at?: string | null
+          class_average?: number | null
+          class_std_deviation?: number | null
+          course_id: string
+          difficulty_score?: number | null
+          failure_rate?: number | null
+          id?: string
+          sample_size?: number | null
+          semester?: number | null
+          top_performer_ceiling?: number | null
+        }
+        Update: {
+          academic_year?: string | null
+          batch_id?: string | null
+          calculated_at?: string | null
+          class_average?: number | null
+          class_std_deviation?: number | null
+          course_id?: string
+          difficulty_score?: number | null
+          failure_rate?: number | null
+          id?: string
+          sample_size?: number | null
+          semester?: number | null
+          top_performer_ceiling?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_subject_difficulty_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_subject_difficulty_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_submissions: {
         Row: {
           assessment_id: string | null
