@@ -16,6 +16,7 @@ import {
   Settings,
   LogOut,
   X,
+  DoorOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,9 @@ const navItems = [
   { title: "Departments", href: "/admin/departments", icon: Building2 },
   { title: "Programs", href: "/admin/programs", icon: BookOpen },
   { title: "Subjects", href: "/admin/subjects", icon: Layers },
-  { title: "Timetables", href: "/admin/timetables", icon: Calendar },
+  { title: "Sections", href: "/admin/sections", icon: Users },
+  { title: "Rooms", href: "/admin/rooms", icon: DoorOpen },
+  { title: "Timetable Grid", href: "/admin/timetable-grid", icon: Calendar },
   { title: "Faculty Assignment", href: "/admin/assign-faculty", icon: UserPlus },
   { title: "Geo Zones", href: "/admin/geo-zones", icon: MapPin },
   { title: "Attendance Rules", href: "/admin/attendance-rules", icon: Settings2 },

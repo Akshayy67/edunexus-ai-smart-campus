@@ -79,6 +79,7 @@ const App = () => (
               }
             >
               <Route index element={<StudentDashboard />} />
+              <Route path="today" element={<StudentTodayView />} />
               <Route path="attendance" element={<StudentAttendance />} />
               <Route path="timetable" element={<StudentTimetable />} />
               <Route path="mark-attendance" element={<StudentMarkAttendance />} />
@@ -120,7 +121,10 @@ const App = () => (
               <Route path="departments" element={<AdminDepartments />} />
               <Route path="programs" element={<AdminPrograms />} />
               <Route path="subjects" element={<AdminSubjects />} />
+              <Route path="sections" element={<AdminSections />} />
+              <Route path="rooms" element={<AdminRooms />} />
               <Route path="timetables" element={<AdminTimetables />} />
+              <Route path="timetable-grid" element={<AdminTimetableGrid />} />
               <Route path="assign-faculty" element={<AdminFacultyAssignment />} />
               <Route path="geo-zones" element={<AdminGeoZones />} />
               <Route path="attendance-rules" element={<AdminAttendanceRules />} />
