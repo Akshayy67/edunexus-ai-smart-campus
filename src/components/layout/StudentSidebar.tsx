@@ -65,9 +65,9 @@ export function StudentSidebar({ isOpen, onClose }: StudentSidebarProps) {
         <div className="h-16 flex items-center justify-between px-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">E</span>
+              <span className="text-primary-foreground font-bold text-sm">S</span>
             </div>
-            <span className="font-semibold text-foreground">Student Portal</span>
+            <span className="font-semibold text-foreground">Super App</span>
           </div>
           <Button
             variant="ghost"
