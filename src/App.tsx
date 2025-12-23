@@ -15,9 +15,25 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 
-// Role Dashboards
+// Student Pages
 import StudentDashboard from "@/pages/student/StudentDashboard";
+import StudentAttendance from "@/pages/student/StudentAttendance";
+import StudentTimetable from "@/pages/student/StudentTimetable";
+import StudentMarkAttendance from "@/pages/student/StudentMarkAttendance";
+import StudentAssignments from "@/pages/student/StudentAssignments";
+import StudentMarks from "@/pages/student/StudentMarks";
+import StudentPerformance from "@/pages/student/StudentPerformance";
+import StudentNotifications from "@/pages/student/StudentNotifications";
+
+// Faculty Pages
 import FacultyDashboard from "@/pages/faculty/FacultyDashboard";
+import FacultyAttendance from "@/pages/faculty/FacultyAttendance";
+import FacultyTimetable from "@/pages/faculty/FacultyTimetable";
+import FacultyAssignments from "@/pages/faculty/FacultyAssignments";
+import FacultyGrading from "@/pages/faculty/FacultyGrading";
+import FacultyAnalytics from "@/pages/faculty/FacultyAnalytics";
+
+// Admin Pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 import NotFound from "@/pages/NotFound";
@@ -47,6 +63,13 @@ const App = () => (
               }
             >
               <Route index element={<StudentDashboard />} />
+              <Route path="attendance" element={<StudentAttendance />} />
+              <Route path="timetable" element={<StudentTimetable />} />
+              <Route path="mark-attendance" element={<StudentMarkAttendance />} />
+              <Route path="assignments" element={<StudentAssignments />} />
+              <Route path="marks" element={<StudentMarks />} />
+              <Route path="performance" element={<StudentPerformance />} />
+              <Route path="notifications" element={<StudentNotifications />} />
             </Route>
 
             {/* Faculty Routes */}
@@ -59,11 +82,16 @@ const App = () => (
               }
             >
               <Route index element={<FacultyDashboard />} />
+              <Route path="attendance" element={<FacultyAttendance />} />
+              <Route path="timetable" element={<FacultyTimetable />} />
+              <Route path="assignments" element={<FacultyAssignments />} />
+              <Route path="grading" element={<FacultyGrading />} />
+              <Route path="analytics" element={<FacultyAnalytics />} />
             </Route>
 
             {/* Admin Routes */}
             <Route
-              path="/admin"
+              path="/admin/*"
               element={
                 <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                   <AdminLayout />
