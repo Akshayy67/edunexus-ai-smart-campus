@@ -34,6 +34,8 @@ import FacultyAssignments from "@/pages/faculty/FacultyAssignments";
 import FacultyGrading from "@/pages/faculty/FacultyGrading";
 import FacultyMarksEntry from "@/pages/faculty/FacultyMarksEntry";
 import FacultyAnalytics from "@/pages/faculty/FacultyAnalytics";
+import FacultyNotifications from "@/pages/faculty/FacultyNotifications";
+import FacultyProfile from "@/pages/faculty/FacultyProfile";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -109,6 +111,8 @@ const App = () => (
               <Route path="grading" element={<FacultyGrading />} />
               <Route path="marks-entry" element={<FacultyMarksEntry />} />
               <Route path="analytics" element={<FacultyAnalytics />} />
+              <Route path="notifications" element={<FacultyNotifications />} />
+              <Route path="profile" element={<FacultyProfile />} />
             </Route>
 
             {/* Admin Routes */}
