@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ClipboardCheck, Eye, Save, CheckCircle } from "lucide-react";
+import { ClipboardCheck, Eye, Save, CheckCircle, AlertTriangle, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface Submission {
   id: string;
@@ -32,6 +33,7 @@ interface Submission {
       code: string;
     } | null;
   } | null;
+  risk_category?: string;
 }
 
 export default function FacultyGrading() {
@@ -91,6 +93,7 @@ export default function FacultyGrading() {
           const assessment = assessments.find((a) => a.id === sub.assessment_id);
           
           let student = null;
+          let riskCategory = undefined;
           if (sub.student_id) {
             const { data: studentData } = await supabase
               .from("students")
@@ -98,6 +101,16 @@ export default function FacultyGrading() {
               .eq("id", sub.student_id)
               .maybeSingle();
             student = studentData;
+
+            // Get risk score
+            const { data: riskData } = await supabase
+              .from("ai_risk_scores")
+              .select("risk_category")
+              .eq("student_id", sub.student_id)
+              .order("calculated_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            riskCategory = riskData?.risk_category;
           }
 
           let course = null;
@@ -116,6 +129,7 @@ export default function FacultyGrading() {
             assessment: assessment
               ? { title: assessment.title, total_marks: assessment.total_marks, course }
               : null,
+            risk_category: riskCategory,
           });
         }
 
@@ -178,6 +192,10 @@ export default function FacultyGrading() {
 
   const pendingSubmissions = submissions.filter((s) => s.status !== "graded");
   const gradedSubmissions = submissions.filter((s) => s.status === "graded");
+  const lowPerformingGraded = gradedSubmissions.filter(
+    (s) => s.marks_obtained !== null && s.assessment?.total_marks && 
+           (s.marks_obtained / s.assessment.total_marks) < 0.4
+  );
 
   if (loading) {
     return (
@@ -222,6 +240,37 @@ export default function FacultyGrading() {
         </Card>
       </div>
 
+      {/* Low Performing Students Alert */}
+      {lowPerformingGraded.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" />
+              Students Needing Improvement
+            </CardTitle>
+            <CardDescription>
+              {lowPerformingGraded.length} student(s) scored below 40% - consider reaching out for support
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {lowPerformingGraded.slice(0, 8).map((submission) => (
+                <Badge key={submission.id} variant="outline" className="bg-amber-500/10">
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                  {submission.student?.roll_number} - {submission.student?.first_name}
+                  <span className="ml-1 text-xs opacity-70">
+                    ({Math.round((submission.marks_obtained! / submission.assessment!.total_marks) * 100)}%)
+                  </span>
+                </Badge>
+              ))}
+              {lowPerformingGraded.length > 8 && (
+                <Badge variant="outline">+{lowPerformingGraded.length - 8} more</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Submissions */}
       <Card>
         <CardHeader>
@@ -244,6 +293,7 @@ export default function FacultyGrading() {
                   <TableHead>Student</TableHead>
                   <TableHead>Assignment</TableHead>
                   <TableHead>Course</TableHead>
+                  <TableHead>Risk</TableHead>
                   <TableHead>Submitted</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -251,7 +301,11 @@ export default function FacultyGrading() {
               </TableHeader>
               <TableBody>
                 {pendingSubmissions.map((submission) => (
-                  <TableRow key={submission.id}>
+                  <TableRow key={submission.id} className={cn(
+                    submission.risk_category === "high" || submission.risk_category === "critical" 
+                      ? "bg-amber-500/5" 
+                      : ""
+                  )}>
                     <TableCell>
                       <div>
                         <div className="font-medium">
@@ -266,6 +320,26 @@ export default function FacultyGrading() {
                     </TableCell>
                     <TableCell>{submission.assessment?.title || "-"}</TableCell>
                     <TableCell>{submission.assessment?.course?.code || "-"}</TableCell>
+                    <TableCell>
+                      {submission.risk_category ? (
+                        <Badge
+                          variant="outline"
+                          className={cn({
+                            "text-green-500 bg-green-500/10": submission.risk_category === "low",
+                            "text-amber-500 bg-amber-500/10": submission.risk_category === "moderate",
+                            "text-orange-500 bg-orange-500/10": submission.risk_category === "high",
+                            "text-destructive bg-destructive/10": submission.risk_category === "critical",
+                          })}
+                        >
+                          {submission.risk_category === "high" || submission.risk_category === "critical" ? (
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                          ) : null}
+                          {submission.risk_category}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {submission.submitted_at
                         ? format(new Date(submission.submitted_at), "MMM dd, h:mm a")

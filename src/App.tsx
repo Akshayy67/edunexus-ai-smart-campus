@@ -32,6 +32,7 @@ import FacultyAttendance from "@/pages/faculty/FacultyAttendance";
 import FacultyTimetable from "@/pages/faculty/FacultyTimetable";
 import FacultyAssignments from "@/pages/faculty/FacultyAssignments";
 import FacultyGrading from "@/pages/faculty/FacultyGrading";
+import FacultyMarksEntry from "@/pages/faculty/FacultyMarksEntry";
 import FacultyAnalytics from "@/pages/faculty/FacultyAnalytics";
 
 // Admin Pages
@@ -106,6 +107,7 @@ const App = () => (
               <Route path="timetable" element={<FacultyTimetable />} />
               <Route path="assignments" element={<FacultyAssignments />} />
               <Route path="grading" element={<FacultyGrading />} />
+              <Route path="marks-entry" element={<FacultyMarksEntry />} />
               <Route path="analytics" element={<FacultyAnalytics />} />
             </Route>
 
