@@ -29,7 +29,7 @@ interface AttendanceSession {
 }
 
 interface StudentAttendance {
-  id: string;
+  id: string | null;
   student_id: string;
   status: string;
   check_in_time: string | null;
@@ -40,6 +40,13 @@ interface StudentAttendance {
   } | null;
 }
 
+interface EnrolledStudent {
+  id: string;
+  first_name: string;
+  last_name: string;
+  roll_number: string;
+}
+
 export default function FacultyAttendance() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -48,6 +55,7 @@ export default function FacultyAttendance() {
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [activeSession, setActiveSession] = useState<AttendanceSession | null>(null);
   const [sessionStudents, setSessionStudents] = useState<StudentAttendance[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[]>([]);
   const [qrData, setQrData] = useState<string>("");
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [facultyId, setFacultyId] = useState<string | null>(null);
@@ -61,6 +69,7 @@ export default function FacultyAttendance() {
   useEffect(() => {
     if (activeSession) {
       fetchSessionStudents(activeSession.id);
+      fetchEnrolledStudents();
       // Refresh QR code every 30 seconds
       const interval = setInterval(() => {
         generateQRCode(activeSession.id);
@@ -146,6 +155,53 @@ export default function FacultyAttendance() {
       setSessionStudents(enrichedRecords);
     } catch (error) {
       console.error("Error fetching session students:", error);
+    }
+  };
+
+  const fetchEnrolledStudents = async () => {
+    if (!activeSession?.course_id) return;
+
+    try {
+      // Get the batch for this course assignment
+      const { data: assignment } = await supabase
+        .from("course_assignments")
+        .select("batch_id")
+        .eq("course_id", activeSession.course_id)
+        .maybeSingle();
+
+      if (!assignment?.batch_id) return;
+
+      // Get sections for this batch
+      const { data: sections } = await supabase
+        .from("sections")
+        .select("id")
+        .eq("batch_id", assignment.batch_id);
+
+      if (!sections || sections.length === 0) return;
+
+      const sectionIds = sections.map(s => s.id);
+
+      // Get enrolled students
+      const { data: enrollments } = await supabase
+        .from("student_enrollments")
+        .select("student_id")
+        .in("section_id", sectionIds)
+        .eq("status", "active");
+
+      if (!enrollments || enrollments.length === 0) return;
+
+      const studentIds = enrollments.map(e => e.student_id);
+
+      // Get student details
+      const { data: students } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, roll_number")
+        .in("id", studentIds)
+        .order("roll_number");
+
+      setEnrolledStudents(students || []);
+    } catch (error) {
+      console.error("Error fetching enrolled students:", error);
     }
   };
 
@@ -389,61 +445,80 @@ export default function FacultyAttendance() {
             </div>
           </CardHeader>
           <CardContent>
-            {sessionStudents.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No students have checked in yet. Show the QR code to students.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Roll No</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Check-in Time</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sessionStudents.map((record) => (
-                    <TableRow key={record.id}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Roll No</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Check-in Time</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {enrolledStudents.map((student) => {
+                  const attendanceRecord = sessionStudents.find(
+                    (r) => r.student_id === student.id
+                  );
+                  const status = attendanceRecord?.status || "not_marked";
+
+                  return (
+                    <TableRow key={student.id}>
                       <TableCell className="font-medium">
-                        {record.student?.roll_number || "-"}
+                        {student.roll_number}
                       </TableCell>
                       <TableCell>
-                        {record.student
-                          ? `${record.student.first_name} ${record.student.last_name}`
+                        {student.first_name} {student.last_name}
+                      </TableCell>
+                      <TableCell>
+                        {attendanceRecord?.check_in_time
+                          ? format(new Date(attendanceRecord.check_in_time), "h:mm a")
                           : "-"}
                       </TableCell>
                       <TableCell>
-                        {record.check_in_time
-                          ? format(new Date(record.check_in_time), "h:mm a")
-                          : "-"}
+                        {status === "not_marked" ? (
+                          <Badge variant="secondary">Not Marked</Badge>
+                        ) : (
+                          getStatusBadge(status)
+                        )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(record.status)}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            variant={record.status === "present" ? "default" : "outline"}
-                            onClick={() => manualMarkAttendance(record.student_id, "present")}
+                            variant={status === "present" ? "default" : "outline"}
+                            onClick={() => manualMarkAttendance(student.id, "present")}
                           >
                             Present
                           </Button>
                           <Button
                             size="sm"
-                            variant={record.status === "absent" ? "destructive" : "outline"}
-                            onClick={() => manualMarkAttendance(record.student_id, "absent")}
+                            variant={status === "absent" ? "destructive" : "outline"}
+                            onClick={() => manualMarkAttendance(student.id, "absent")}
                           >
                             Absent
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={status === "late" ? "secondary" : "outline"}
+                            onClick={() => manualMarkAttendance(student.id, "late")}
+                          >
+                            Late
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+                  );
+                })}
+                {enrolledStudents.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      No enrolled students found for this course.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
