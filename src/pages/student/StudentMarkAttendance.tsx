@@ -164,8 +164,25 @@ export default function StudentMarkAttendance() {
     setErrorMessage("");
 
     try {
-      const location = await getUserLocation();
-      setUserLocation(location);
+      // Get location first
+      let location: { lat: number; lng: number };
+      try {
+        location = await getUserLocation();
+        setUserLocation(location);
+      } catch (locError: any) {
+        console.error("Location error:", locError);
+        setAttendanceStatus("error");
+        if (locError.code === 1) {
+          setErrorMessage("Location access denied. Please enable location permissions in your browser settings and try again.");
+        } else if (locError.code === 2) {
+          setErrorMessage("Unable to determine your location. Please ensure GPS is enabled.");
+        } else if (locError.code === 3) {
+          setErrorMessage("Location request timed out. Please try again.");
+        } else {
+          setErrorMessage("Failed to access location. Please enable location services.");
+        }
+        return;
+      }
 
       // Check if within geo-fence
       if (session.zone) {
@@ -189,20 +206,33 @@ export default function StudentMarkAttendance() {
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
 
-      await scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        async (decodedText) => {
-          await handleQRCode(decodedText, session, location);
-          scanner.stop().catch(() => {});
-          setScanning(false);
-        },
-        () => {} // Ignore errors during scanning
-      );
+      try {
+        await scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          async (decodedText) => {
+            await handleQRCode(decodedText, session, location);
+            scanner.stop().catch(() => {});
+            setScanning(false);
+          },
+          () => {} // Ignore errors during scanning
+        );
+      } catch (camError: any) {
+        console.error("Camera error:", camError);
+        setAttendanceStatus("error");
+        if (camError.message?.includes("Permission denied") || camError.name === "NotAllowedError") {
+          setErrorMessage("Camera access denied. Please enable camera permissions in your browser settings and try again.");
+        } else if (camError.name === "NotFoundError") {
+          setErrorMessage("No camera found on this device.");
+        } else {
+          setErrorMessage("Failed to access camera. Please check your browser permissions.");
+        }
+        setScanning(false);
+      }
     } catch (error: any) {
       console.error("Error starting scan:", error);
       setAttendanceStatus("error");
-      setErrorMessage(error.message || "Failed to access camera or location");
+      setErrorMessage(error.message || "An unexpected error occurred. Please try again.");
       setScanning(false);
     }
   };

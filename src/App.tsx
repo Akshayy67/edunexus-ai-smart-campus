@@ -27,6 +27,7 @@ import StudentNotifications from "@/pages/student/StudentNotifications";
 
 // Faculty Pages
 import FacultyDashboard from "@/pages/faculty/FacultyDashboard";
+import FacultySubjects from "@/pages/faculty/FacultySubjects";
 import FacultyAttendance from "@/pages/faculty/FacultyAttendance";
 import FacultyTimetable from "@/pages/faculty/FacultyTimetable";
 import FacultyAssignments from "@/pages/faculty/FacultyAssignments";
@@ -99,6 +100,7 @@ const App = () => (
               }
             >
               <Route index element={<FacultyDashboard />} />
+              <Route path="subjects" element={<FacultySubjects />} />
               <Route path="attendance" element={<FacultyAttendance />} />
               <Route path="timetable" element={<FacultyTimetable />} />
               <Route path="assignments" element={<FacultyAssignments />} />
