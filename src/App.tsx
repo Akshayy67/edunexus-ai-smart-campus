@@ -49,6 +49,7 @@ import AdminFacultyAssignment from "@/pages/admin/AdminFacultyAssignment";
 import AdminGeoZones from "@/pages/admin/AdminGeoZones";
 import AdminAttendanceRules from "@/pages/admin/AdminAttendanceRules";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
+import AdminAIAnalytics from "@/pages/admin/AdminAIAnalytics";
 import AdminAuditLogs from "@/pages/admin/AdminAuditLogs";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import StudentTodayView from "@/pages/student/StudentTodayView";
@@ -131,6 +132,7 @@ const App = () => (
               <Route path="geo-zones" element={<AdminGeoZones />} />
               <Route path="attendance-rules" element={<AdminAttendanceRules />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="ai-analytics" element={<AdminAIAnalytics />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
