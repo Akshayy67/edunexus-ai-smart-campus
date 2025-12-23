@@ -5,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { QrCode, Play, Square, Users, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react";
+import { QrCode, Play, Square, Users, CheckCircle, XCircle, Clock, RefreshCw, AlertTriangle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { AtRiskStudentsDialog } from "@/components/ai/AtRiskStudentsDialog";
 
 interface Course {
   id: string;
@@ -58,6 +59,8 @@ export default function FacultyAttendance() {
   const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[]>([]);
   const [qrData, setQrData] = useState<string>("");
   const [showQRDialog, setShowQRDialog] = useState(false);
+  const [showAtRiskDialog, setShowAtRiskDialog] = useState(false);
+  const [completedSessionId, setCompletedSessionId] = useState<string | null>(null);
   const [facultyId, setFacultyId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -261,10 +264,12 @@ export default function FacultyAttendance() {
     if (!activeSession) return;
 
     try {
+      const sessionId = activeSession.id;
+      
       const { error } = await supabase
         .from("attendance_sessions")
         .update({ status: "completed" })
-        .eq("id", activeSession.id);
+        .eq("id", sessionId);
 
       if (error) throw error;
 
@@ -272,9 +277,13 @@ export default function FacultyAttendance() {
       setShowQRDialog(false);
       setQrData("");
 
+      // Show at-risk students dialog
+      setCompletedSessionId(sessionId);
+      setShowAtRiskDialog(true);
+
       toast({
         title: "Session Ended",
-        description: "Attendance session has been closed.",
+        description: "Attendance session has been closed. Checking for at-risk students...",
       });
     } catch (error: any) {
       console.error("Error stopping session:", error);
@@ -549,6 +558,14 @@ export default function FacultyAttendance() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* At-Risk Students Dialog */}
+      <AtRiskStudentsDialog
+        open={showAtRiskDialog}
+        onOpenChange={setShowAtRiskDialog}
+        sessionId={completedSessionId || undefined}
+        title="At-Risk Students in This Class"
+      />
     </div>
   );
 }
