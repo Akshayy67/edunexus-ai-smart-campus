@@ -13,6 +13,7 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 
 // Auth Pages
 import LoginPage from "@/pages/auth/LoginPage";
+import RegisterPage from "@/pages/auth/RegisterPage";
 
 // Role Dashboards
 import StudentDashboard from "@/pages/student/StudentDashboard";
@@ -34,6 +35,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<Navigate to="/auth/login" replace />} />
             <Route path="/auth/login" element={<LoginPage />} />
+            <Route path="/auth/register" element={<RegisterPage />} />
 
             {/* Student Routes */}
             <Route
