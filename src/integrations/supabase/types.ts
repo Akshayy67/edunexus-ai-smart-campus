@@ -602,6 +602,36 @@ export type Database = {
         }
         Relationships: []
       }
+      periods: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          is_break: boolean
+          name: string
+          period_number: number
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          is_break?: boolean
+          name: string
+          period_number: number
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_break?: boolean
+          name?: string
+          period_number?: number
+          start_time?: string
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           code: string
@@ -639,6 +669,86 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sections: {
+        Row: {
+          batch_id: string
+          created_at: string
+          display_name: string | null
+          id: string
+          section_name: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          section_name?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          section_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sections_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_enrollments: {
+        Row: {
+          academic_year: string
+          created_at: string
+          enrollment_date: string
+          id: string
+          section_id: string
+          semester: number
+          status: string
+          student_id: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          enrollment_date?: string
+          id?: string
+          section_id: string
+          semester?: number
+          status?: string
+          student_id: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          enrollment_date?: string
+          id?: string
+          section_id?: string
+          semester?: number
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_enrollments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -704,6 +814,8 @@ export type Database = {
           end_time: string
           id: string
           is_recurring: boolean | null
+          period_id: string | null
+          section_id: string | null
           slot_type: string | null
           start_time: string
           zone_id: string | null
@@ -717,6 +829,8 @@ export type Database = {
           end_time: string
           id?: string
           is_recurring?: boolean | null
+          period_id?: string | null
+          section_id?: string | null
           slot_type?: string | null
           start_time: string
           zone_id?: string | null
@@ -730,6 +844,8 @@ export type Database = {
           end_time?: string
           id?: string
           is_recurring?: boolean | null
+          period_id?: string | null
+          section_id?: string | null
           slot_type?: string | null
           start_time?: string
           zone_id?: string | null
@@ -740,6 +856,20 @@ export type Database = {
             columns: ["course_assignment_id"]
             isOneToOne: false
             referencedRelation: "course_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
             referencedColumns: ["id"]
           },
           {

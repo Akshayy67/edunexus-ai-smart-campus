@@ -41,12 +41,16 @@ import AdminDepartments from "@/pages/admin/AdminDepartments";
 import AdminPrograms from "@/pages/admin/AdminPrograms";
 import AdminSubjects from "@/pages/admin/AdminSubjects";
 import AdminTimetables from "@/pages/admin/AdminTimetables";
+import AdminTimetableGrid from "@/pages/admin/AdminTimetableGrid";
+import AdminSections from "@/pages/admin/AdminSections";
+import AdminRooms from "@/pages/admin/AdminRooms";
 import AdminFacultyAssignment from "@/pages/admin/AdminFacultyAssignment";
 import AdminGeoZones from "@/pages/admin/AdminGeoZones";
 import AdminAttendanceRules from "@/pages/admin/AdminAttendanceRules";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import AdminAuditLogs from "@/pages/admin/AdminAuditLogs";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import StudentTodayView from "@/pages/student/StudentTodayView";
 
 import NotFound from "@/pages/NotFound";
 
