@@ -35,6 +35,18 @@ import FacultyAnalytics from "@/pages/faculty/FacultyAnalytics";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminStudents from "@/pages/admin/AdminStudents";
+import AdminFaculty from "@/pages/admin/AdminFaculty";
+import AdminDepartments from "@/pages/admin/AdminDepartments";
+import AdminPrograms from "@/pages/admin/AdminPrograms";
+import AdminSubjects from "@/pages/admin/AdminSubjects";
+import AdminTimetables from "@/pages/admin/AdminTimetables";
+import AdminFacultyAssignment from "@/pages/admin/AdminFacultyAssignment";
+import AdminGeoZones from "@/pages/admin/AdminGeoZones";
+import AdminAttendanceRules from "@/pages/admin/AdminAttendanceRules";
+import AdminAnalytics from "@/pages/admin/AdminAnalytics";
+import AdminAuditLogs from "@/pages/admin/AdminAuditLogs";
+import AdminSettings from "@/pages/admin/AdminSettings";
 
 import NotFound from "@/pages/NotFound";
 
@@ -99,6 +111,18 @@ const App = () => (
               }
             >
               <Route index element={<AdminDashboard />} />
+              <Route path="users/students" element={<AdminStudents />} />
+              <Route path="users/faculty" element={<AdminFaculty />} />
+              <Route path="departments" element={<AdminDepartments />} />
+              <Route path="programs" element={<AdminPrograms />} />
+              <Route path="subjects" element={<AdminSubjects />} />
+              <Route path="timetables" element={<AdminTimetables />} />
+              <Route path="assign-faculty" element={<AdminFacultyAssignment />} />
+              <Route path="geo-zones" element={<AdminGeoZones />} />
+              <Route path="attendance-rules" element={<AdminAttendanceRules />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="audit-logs" element={<AdminAuditLogs />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
             {/* Catch-all */}
